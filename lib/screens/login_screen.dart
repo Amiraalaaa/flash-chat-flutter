@@ -1,5 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flash_chat/constants.dart';
 import 'package:flutter/material.dart';
+
+import 'chat_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   static String id = 'loginscreen';
@@ -8,6 +11,10 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  String email;
+  String password;
+  final _auth = FirebaseAuth.instance;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,19 +35,21 @@ class _LoginScreenState extends State<LoginScreen> {
             SizedBox(
               height: 48.0,
             ),
-            TextField(
+            TextField(keyboardType: TextInputType.emailAddress,
+              textAlign: TextAlign.center,
               onChanged: (value) {
-                //Do something with the user input.
-              },
+               email=value;},
+
               decoration: kTextfieldDecoration.copyWith(hintText: "Enter your Email"),
             ),
             SizedBox(
               height: 8.0,
             ),
             TextField(
-              onChanged: (value) {
-                //Do something with the user input.
-              },
+                    obscureText: true,
+                    textAlign: TextAlign.center,
+                   onChanged: (value) {
+                   password=value;},
               decoration: kTextfieldDecoration.copyWith(hintText: "Enter your password"),
             ),
             SizedBox(
@@ -53,8 +62,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 borderRadius: BorderRadius.all(Radius.circular(30.0)),
                 elevation: 5.0,
                 child: MaterialButton(
-                  onPressed: () {
-                    //Implement login functionality.
+                  onPressed: () async{
+                    try {
+                      final newuser = await _auth.signInWithEmailAndPassword(email: email, password: password);
+                     if (newuser!=null) {
+                       Navigator.pushNamed(context, ChatScreen.id);
+                     }
+                   }
+                   catch(e){
+                     print(e);
+                   }
+
                   },
                   minWidth: 200.0,
                   height: 42.0,
