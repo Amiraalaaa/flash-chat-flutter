@@ -2,9 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flash_chat/constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flash_chat/messageBubble.dart';
 
+final _firestore = FirebaseFirestore.instance;
+User loggeduser ;
 
 class ChatScreen extends StatefulWidget {
+
   static String id = 'ChatScreen';
 
   @override
@@ -13,7 +17,7 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   String textmessage;
-  final _firestore = FirebaseFirestore.instance;
+  final textcontroller = TextEditingController();
   @override
   void initState() {
     super.initState();
@@ -21,7 +25,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   final _auth=FirebaseAuth.instance;
-  User loggeduser ;
   void getUser() async{
     final user = await _auth.currentUser;
     if(user!=null){
@@ -29,7 +32,14 @@ class _ChatScreenState extends State<ChatScreen> {
 
     }
   }
+void getmessagestream()async{
+    await for(var snapshots in _firestore.collection('amira').snapshots())
+      {
+        for(var mess in snapshots.docs)
+          print(mess.data());
+      }
 
+}
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +62,7 @@ class _ChatScreenState extends State<ChatScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+            Streambuilder(),
             Container(
               decoration: kMessageContainerDecoration,
               child: Row(
@@ -59,6 +70,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: <Widget>[
                   Expanded(
                     child: TextField(
+                      controller:  textcontroller ,
                       onChanged: (value) {
                         textmessage = value;
                       },
@@ -67,8 +79,10 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   FlatButton(
                     onPressed: () {
+                      textcontroller.clear();
                       _firestore.collection('amira').add({
                         'text' : textmessage,
+                        'sender':loggeduser.email,
                       });
                     },
                     child: Text(
@@ -82,6 +96,34 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+class Streambuilder extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: _firestore.collection('amira').snapshots(),
+      builder: (context, snapshot) {
+        final message = snapshot.data.docs.reversed;
+        List<MessageBubble> messageswidget = [];
+        for(var themesage in message)
+        {
+          final textmessage = themesage.data()['text'];
+          final thesender = themesage.data()["sender"];
+          final currentuser = loggeduser.email;
+
+          final thetext = MessageBubble(text: textmessage,sender:thesender,isme:currentuser==thesender,);
+          messageswidget.add(thetext);
+        }
+        return Expanded(
+          child: ListView(
+            reverse: true,
+            padding: EdgeInsets.symmetric(horizontal: 5.0,vertical:5.0),
+            children: messageswidget,
+          ),
+        );
+      },
     );
   }
 }
