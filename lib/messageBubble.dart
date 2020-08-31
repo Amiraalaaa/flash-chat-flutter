@@ -4,7 +4,8 @@ class MessageBubble extends StatelessWidget {
   final String text;
   final String sender;
   final bool isme;
-  MessageBubble({this.text,this.sender,this.isme});
+  final String dateTime;
+  MessageBubble({this.text,this.sender,this.isme,@required this.dateTime});
 
   @override
   Widget build(BuildContext context) {

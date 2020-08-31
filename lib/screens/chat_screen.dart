@@ -83,6 +83,7 @@ void getmessagestream()async{
                       _firestore.collection('amira').add({
                         'text' : textmessage,
                         'sender':loggeduser.email,
+                        'dateandtime' : DateTime.now().toString(),
                       });
                     },
                     child: Text(
@@ -111,10 +112,15 @@ class Streambuilder extends StatelessWidget {
         {
           final textmessage = themesage.data()['text'];
           final thesender = themesage.data()["sender"];
+          final messageDateTime = themesage.data()['dateandtime'];
           final currentuser = loggeduser.email;
 
-          final thetext = MessageBubble(text: textmessage,sender:thesender,isme:currentuser==thesender,);
+          final thetext = MessageBubble(text: textmessage,
+              sender:thesender,
+              isme:currentuser==thesender,
+              dateTime: messageDateTime);
           messageswidget.add(thetext);
+          messageswidget.sort((a,b)=>DateTime.parse(b.dateTime).compareTo(DateTime.parse(a.dateTime),),);
         }
         return Expanded(
           child: ListView(
